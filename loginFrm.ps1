@@ -5,13 +5,22 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+if(!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')){
+    
+    #Start-Process powershell -Verb RunAs -ArgumentList ".\loginFrm.ps1"
+    Start-Process -filepath "powershell" -verb runas -ArgumentList $PSScriptRoot\ 
+}
+
+else{
+
+
 #Form Design down below:
 
 
 # form design parameters:
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'Who logged in?'
-$form.Size = New-Object System.Drawing.Size(600,600)
+$form.Size = New-Object System.Drawing.Size(480,350)
 $form.StartPosition = 'CenterScreen'
 
 # Run button parameters:
@@ -26,12 +35,12 @@ $form.Controls.Add($okButton)
 
 
 # clear button parameters:
-$cancelButton = New-Object System.Windows.Forms.Button
-$cancelButton.Location = New-Object System.Drawing.Point(300,35)
-$cancelButton.Size = New-Object System.Drawing.Size(75,40)
-$cancelButton.Text = 'Cancel'
+$clearButton = New-Object System.Windows.Forms.Button
+$clearButton.Location = New-Object System.Drawing.Point(300,35)
+$clearButton.Size = New-Object System.Drawing.Size(75,40)
+$clearButton.Text = 'Clear'
 
-$form.Controls.Add($cancelButton)
+$form.Controls.Add($clearButton)
 
 #label parameters:
 $label = New-Object System.Windows.Forms.Label
@@ -47,32 +56,24 @@ $form.Controls.Add($textBox1)
 
 $textBox2 = New-Object System.Windows.Forms.RichTextBox
 $textBox2.Location = New-Object System.Drawing.Point(10,100)
-$textBox2.Size = New-Object System.Drawing.Size(430,300)
+$textBox2.Size = New-Object System.Drawing.Size(430,150)
 $form.Controls.Add($textBox2)
 
 
 
-
+# This is the function that searches for the user logged in
 function DeviceName{
 
     param (
         [string] $name
     )
-
-    
-    Try{
-   
-        query user console /server:$name
-    }
-   
-    Catch [System.Management.Automation.RemoteException]{
-        
-        "Connection error. Please ensure the end-device is turned on."
-    }
-      
+     
+    #(get-ciminstance -Class cim_computersystem -ComputerName $name).UserName
+    query user console /server:$name
+  
 }
 
-
+# The function that performs the query
 $submit_click = {
     
     $textBox2.Clear()
@@ -80,25 +81,41 @@ $submit_click = {
     $input = $textBox1.Text
 
     Try{
-        $result = DeviceName -name $input
-    }
-
-    Catch [System.Management.Automation.RemoteException]{
         
-        $result = "Connection error. Please ensure the end-device is turned on."
+        $result = DeviceName -name $input
+
+        if($result -eq $null){
+
+            [System.Windows.MessageBox]::Show("Connection error. Please make sure the end-device is turned on.")
+            
+        }
+
+        $textBox2.AppendText($result)
+
     }
 
-
+    Catch{
+        
+        Write-Warning "Connection error. Please make sure the end-device is turned on."
+    }
     
-    $textBox2.AppendText($result)
     $textBox2.Refresh()
 }
 
+# This function clears out the input box.
+$clear_click = {
+    
+    $textBox1.Text = ""
+
+}
 
 
 $form.Topmost = $true
 
 $form.Add_Shown({$form.Activate()})
+$form.Add_Shown{($okButton.Add_Click($submit_click))}
+$form.Add_Shown{($clearButton.Add_Click($clear_click))}
 
 [void] $form.ShowDialog()
 
+}
