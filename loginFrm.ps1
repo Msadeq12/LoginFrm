@@ -1,14 +1,14 @@
 ﻿#Author: Mohammad Sadeq Khandakar
 
-
 #declarations
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName PresentationFramework 
 
 if(!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')){
     
     #Start-Process powershell -Verb RunAs -ArgumentList ".\loginFrm.ps1"
-    Start-Process -filepath "powershell" -verb runas -ArgumentList $PSScriptRoot\ 
+    Start-Process -filepath "powershell" -verb runas -ArgumentList "$PSSCriptRoot\loginFrm.ps1" 
 }
 
 else{
@@ -78,8 +78,8 @@ $submit_click = {
     
     $textBox2.Clear()
     
-    $input = $textBox1.Text
-
+    $input = $textBox1.Text.Trim()
+    
     Try{
         
         $result = DeviceName -name $input
@@ -115,6 +115,7 @@ $form.Topmost = $true
 $form.Add_Shown({$form.Activate()})
 $form.Add_Shown{($okButton.Add_Click($submit_click))}
 $form.Add_Shown{($clearButton.Add_Click($clear_click))}
+$form.Add_Shown{([System.Windows.MessageBox].Show("Connection error. Please make sure the end-device is turned on."))}
 
 [void] $form.ShowDialog()
 
