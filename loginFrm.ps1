@@ -8,7 +8,7 @@ Add-Type -AssemblyName PresentationFramework
 if(!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')){
     
     #Start-Process powershell -Verb RunAs -ArgumentList ".\loginFrm.ps1"
-    Start-Process -filepath "powershell" -verb runas -ArgumentList "$PSSCriptRoot\loginFrm.ps1" 
+    Start-Process -filepath "powershell" -verb runas -ArgumentList "$PSScriptRoot\loginFrm.ps1" 
 }
 
 else{
@@ -56,9 +56,15 @@ $form.Controls.Add($textBox1)
 
 $textBox2 = New-Object System.Windows.Forms.RichTextBox
 $textBox2.Location = New-Object System.Drawing.Point(10,100)
-$textBox2.Size = New-Object System.Drawing.Size(430,150)
+$textBox2.Size = New-Object System.Drawing.Size(430,75)
 $form.Controls.Add($textBox2)
+$textBox2.Enabled = $false
 
+$textBox3 = New-Object System.Windows.Forms.TextBox
+$textBox3.Location = New-Object System.Drawing.Point(11,200)
+$textBox3.Size = New-Object System.Drawing.Size(160,100)
+$form.Controls.Add($textBox3)
+$textBox3.Enabled = $false
 
 
 # This is the function that searches for the user logged in
@@ -73,33 +79,56 @@ function DeviceName{
   
 }
 
+function Get-UserName{
+
+    param(
+        [string] $name
+    )
+
+    (get-wmiobject -Class Win32_computersystem -ComputerName $name).UserName
+
+}
+
 # The function that performs the query
 $submit_click = {
     
     $textBox2.Clear()
+    $textBox3.Clear()
     
     $input = $textBox1.Text.Trim()
     
     Try{
         
-        $result = DeviceName -name $input
+        $result1 = DeviceName -name $input
+        $result2 = Get-UserName -name $input
 
-        if($result -eq $null){
+        if($result1 -eq $null -or $result2 -eq $null){
 
             [System.Windows.MessageBox]::Show("Connection error. Please make sure the end-device is turned on.")
             
         }
 
-        $textBox2.AppendText($result)
+        $textBox2.AppendText($result1)
 
+        $textBox3.AppendText($result2)
+
+    }
+
+    Catch [System.Management.Automation.RemoteException]{
+
+        Write-Warning "Connection error. Please make sure the end-device is turned on."
+    }
+
+    Catch [System.Management.Automation.MethodInvocationException]{
+
+        Write-Warning "Connection error. Please make sure the end-device is turned on."
     }
 
     Catch{
         
-        Write-Warning "Connection error. Please make sure the end-device is turned on."
+        Write-Warning "Something went wrong. Please check your settings."
     }
     
-    $textBox2.Refresh()
 }
 
 # This function clears out the input box.
