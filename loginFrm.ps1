@@ -104,7 +104,15 @@ $submit_click = {
 
         if($result1 -eq $null -or $result2 -eq $null){
 
-            [System.Windows.MessageBox]::Show("Connection error. Please make sure the end-device is turned on.")
+            if(Test-Connection -eq $null -or Test-Connection -eq ""){
+                
+                [System.Windows.MessageBox].Show("Connection error. Please make sure the end-device is turned on.")
+            }
+
+            elseif(Test-Connection -ne $null -or Test-Connection -ne ""){
+                
+                $textBox2.AppendText("No user logged in.")
+            }
             
         }
 
