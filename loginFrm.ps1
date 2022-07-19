@@ -96,43 +96,57 @@ $submit_click = {
     $textBox3.Clear()
     
     $input = $textBox1.Text.Trim()
+
+    
     
     Try{
         
         $result1 = DeviceName -name $input
         $result2 = Get-UserName -name $input
 
+        $test = Test-Connection -ComputerName $input
+
         if($result1 -eq $null -or $result2 -eq $null){
 
-            if(Test-Connection -eq $null -or Test-Connection -eq ""){
+            if($test -eq $null -or $test -eq ""){
                 
-                [System.Windows.MessageBox].Show("Connection error. Please make sure the end-device is turned on.")
+                $textBox2.AppendText("Computer must be turned off. Please try again later.")
+                $textBox2.ForeColor = "Red"
             }
 
-            elseif(Test-Connection -ne $null -or Test-Connection -ne ""){
+            elseif($test -ne $null -or $test -ne ""){
                 
                 $textBox2.AppendText("No user logged in.")
+                $textBox2.ForeColor = "Red"
+
             }
             
         }
 
         $textBox2.AppendText($result1)
-
         $textBox3.AppendText($result2)
 
+        $textBox2.ForeColor = "Blue"
+        $textBox3.ForeColor = "Blue"
+
+    }
+
+    Catch [System.Net.NetworkInformation.PingException] {
+    
+        Write-Warning "Computer must be turned off. Please try again later."
     }
 
     Catch [System.Management.Automation.RemoteException]{
-
+    
         Write-Warning "Connection error. Please make sure the end-device is turned on."
     }
-
+    
     Catch [System.Management.Automation.MethodInvocationException]{
-
+    
         Write-Warning "Connection error. Please make sure the end-device is turned on."
     }
 
-    Catch{
+    Catch {
         
         Write-Warning "Something went wrong. Please check your settings."
     }
@@ -152,8 +166,9 @@ $form.Topmost = $true
 $form.Add_Shown({$form.Activate()})
 $form.Add_Shown{($okButton.Add_Click($submit_click))}
 $form.Add_Shown{($clearButton.Add_Click($clear_click))}
-$form.Add_Shown{([System.Windows.MessageBox].Show("Connection error. Please make sure the end-device is turned on."))}
+
 
 [void] $form.ShowDialog()
 
 }
+
