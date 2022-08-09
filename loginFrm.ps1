@@ -60,25 +60,8 @@ $textBox2.Size = New-Object System.Drawing.Size(430,75)
 $form.Controls.Add($textBox2)
 $textBox2.Enabled = $false
 
-$textBox3 = New-Object System.Windows.Forms.TextBox
-$textBox3.Location = New-Object System.Drawing.Point(11,200)
-$textBox3.Size = New-Object System.Drawing.Size(160,100)
-$form.Controls.Add($textBox3)
-$textBox3.Enabled = $false
-
 
 # This is the function that searches for the user logged in
-function DeviceName{
-
-    param (
-        [string] $name
-    )
-     
-    #(get-ciminstance -Class cim_computersystem -ComputerName $name).UserName
-    query user console /server:$name
-  
-}
-
 function Get-UserName{
 
     param(
@@ -93,7 +76,6 @@ function Get-UserName{
 $submit_click = {
     
     $textBox2.Clear()
-    $textBox3.Clear()
     
     $input = $textBox1.Text.Trim()
 
@@ -101,12 +83,11 @@ $submit_click = {
     
     Try{
         
-        $result1 = DeviceName -name $input
         $result2 = Get-UserName -name $input
 
         $test = Test-Connection -ComputerName $input
 
-        if($result1 -eq $null -or $result2 -eq $null){
+        if($result2 -eq $null){
 
             if($test -eq $null -or $test -eq ""){
                 
@@ -123,11 +104,9 @@ $submit_click = {
             
         }
 
-        $textBox2.AppendText($result1)
-        $textBox3.AppendText($result2)
+        $textBox2.AppendText($result2)
 
         $textBox2.ForeColor = "Blue"
-        $textBox3.ForeColor = "Blue"
 
     }
 
