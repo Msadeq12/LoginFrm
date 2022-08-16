@@ -68,7 +68,7 @@ function Get-UserName{
         [string] $name
     )
 
-    (get-wmiobject -Class Win32_computersystem -ComputerName $name).UserName
+    (get-wmiobject -Class Win32_computersystem -ComputerName $name -ErrorAction SilentlyContinue).UserName
 
 }
 
@@ -85,7 +85,7 @@ $submit_click = {
         
         $result2 = Get-UserName -name $input
 
-        $test = Test-Connection -ComputerName $input
+        $test = Test-Connection -ComputerName $input -Count 1 -Quiet
 
         if($result2 -eq $null){
 
