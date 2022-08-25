@@ -79,7 +79,7 @@ $submit_click = {
     
     $input = $textBox1.Text.Trim()
 
-    
+    $textBox2.ForeColor = "Blue"
     
     Try{
         
@@ -106,7 +106,7 @@ $submit_click = {
 
         $textBox2.AppendText($result2)
 
-        $textBox2.ForeColor = "Blue"
+        
 
     }
 
